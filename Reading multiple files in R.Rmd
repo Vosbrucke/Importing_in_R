@@ -1,0 +1,51 @@
+---
+title: "Reading multiple files in R"
+author: "Szymon Lisowski"
+date: "7/15/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### SCZYTYWANIE WIELU PLIKÓW CSV / READING MULTIPLE CSV FILES
+
+## Sczytywanie plików jako osobne tabele / Reading files into separate data frames:
+
+``` {r}
+# Sczytaj  pliki / Read files
+filenames <- list.files(path="...",
+                        pattern="*.csv") # Ten wzór może być dłuższy. Najważniejsze, że nie powienien zawierać części, która się zmienia z każdym plikiem / This pattern can be longer. The important thing is it should not contain the part that changes with each files
+
+# Stwórz listę nazw tabeli. Będzie to nazwa pliku ale również jak pliki będą znajdowane w folderze / Create list of data frame names. This will be the name of the file but also how the file will be found in the folder
+names <-substr(filenames,1,7) 
+
+# Załaduj wszsytkie pliki / Load all files
+for(i in names){
+  filepath <- file.path("../Data/original_data/",paste(i,".csv",sep="")) # ustal separator w plikach, może to być pusta przestrzeń lub na przykład _ / determine the separator in the files, it could be nothing or for example it could be _
+  assign(i, read.csv(filepath, header = TRUE, sep = ";", dec = ",", stringsAsFactors = FALSE, na.strings = c("", "NA"))) # Tutaj może być inna funkcja dla ccczytania plików / There could be a diffent function for reading the files
+}
+
+# Źródło / Source: https://stackoverflow.com/questions/5319839/read-multiple-csv-files-into-separate-data-frames
+```
+
+## Sczytywanie plików i łączenie ich wierszami / Reading files and combining them by rows:
+
+``` {r}
+# Sczytaj  pliki / Read files
+filenames <- list.files(path="...",
+                        pattern="*.csv")
+
+# Sczytaj pliki funkcją .fun i połącz wierszami. Jedna opcja: / Read files with .fun function and combine by rows One option:
+df <- plyr::ldply(.data = filenames, .fun = function(i) {read.csv(i, header = TRUE, sep = ";", dec = ",")})
+# Inna opcja / The other option:
+df <- do.call("cbind", lapply(filesnames, data.table::fread)) # Może być inna funkcja np. jak powyżej, read_xlsx / There could be a different function like the one above, read_xlsx
+```
+
+## Sczytywanie plików i łączenie ich kolumnami / Reading files and combining them by cols:
+
+``` {r}
+# Sczytaj pliki wybraną funkcją i połącz kolumnami / Read files with chosen function and combine by cols
+df <- do.call("cbind", lapply(filesnames, data.table::fread))
+```
